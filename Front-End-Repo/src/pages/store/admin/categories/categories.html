@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gestión de Categorías | Food Store</title>
+<link rel="stylesheet" href="../../../../style.css">
+</head>
+<body>
+    <header class="app-header">
+        <h1 class="logo">🍕 Food Store</h1>
+        <nav class="app-nav">
+            <a href="">Tienda</a>
+            <a href="/src/pages/store/admin/adminHome/adminHome.html">Panel Admin</a>
+            <a id="userName"></a>
+            <button id="logout">Cerrar Sesión</button>
+        </nav>
+    </header>
+
+    <main class="app-main">
+        <aside class="sidebar">
+            <h2>Administración</h2>
+            <p class="subtitle">Panel de control</p>
+            <ul>
+                <li><a href="/src/pages/store/admin/adminHome/adminHome.html">📊 Dashboard</a></li>
+                <li class="active"><a href="#">📁 Categorías</a></li>
+                <li><a href="/src/pages/store/admin/products/products.html">🍔 Productos</a></li>
+                <li><a href="/src/pages/store/admin/orders/orders.html">📦 Pedidos</a></li>
+                <li><a href="/src/pages/store/admin/store/store.html">🏪 Ver Tienda</a></li>
+            </ul>
+        </aside>
+
+        <section class="categories-section">
+            <div class="section-header">
+                <h2>Gestión de Categorías</h2>
+                <button class="btn-add" id="btnAddCategory">+ Nueva Categoría</button>
+            </div>
+
+            <div class="table-container">
+                <table class="category-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Imagen</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </section>
+        <!-- MODAL CREATE CATEGORY -->
+        <div id="modalCreateCategory" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Nueva Categoría</h3>
+                    <button id="closeModal" class="close-btn">x</button>
+                </div>
+
+                <form id="categoryForm" class="modal-form">
+                    <label>Nombre</label>
+                    <input type="text" id="categoryName" placeholder="Nombre de la categoría" required />
+
+                    <label>Descripción</label>
+                    <textarea id="categoryDescription" placeholder="Descripción de la categoría" required></textarea>
+
+                    <label>URL de Imagen</label>
+                    <input type="url" id="categoryImage" placeholder="https://ejemplo.com/imagen.jpg" required />
+
+                    <button type="submit" class="btn-save">Guardar</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL EDIT CATEGORY -->
+        <div id="modalEditCategory" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Editar Categoría</h3>
+                    <button id="closeModalEdit" class="close-btn">x</button>
+                </div>
+
+                <form id="categoryFormEdit" class="modal-form">
+                    <label>Nombre</label>
+                    <input type="text" id="editCategoryName" placeholder="Nombre de la categoría" required />
+
+                    <label>Descripción</label>
+                    <textarea id="editCategoryDescription" placeholder="Descripción de la categoría" required></textarea>
+
+                    <label>URL de Imagen</label>
+                    <input type="url" id="editCategoryImage" placeholder="https://ejemplo.com/imagen.jpg" required />
+
+                    <button type="submit" id="saveEditBtn" class="btn-save">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</body>
+<script type="module" src="./categories.ts"></script>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles de producto | Food Store</title>
+    <link rel="stylesheet" href="../../../../style.css">
+</head>
+<body class="product-detail-body">
+    <header class="app-header">
+        <h1 class="logo">🍕 Food Store</h1>
+        <nav class="app-nav">
+            <a href="../../../../pages/store/home/home.html">Inicio</a>
+            <a href="../../../../pages/store/home/myOrders/myOrders.html">Mis Pedidos</a>
+            <a href="#">Administración</a>
+            <a href="../../../../pages/store/home/cart/cart.html">🛒 Carrito</a>
+            <a id="userName"></a>
+            <button id="logout">Cerrar Sesión</button>
+        </nav>
+    </header>
+    <main class="app-main product-detail-main">
+        <section class="product-detail">
+            <div class="product-detail-image">
+                <img id="productImage" src="" alt="Imagen del producto">
+            </div>
+            <div class="product-detail-info">
+                <h2 id="productName">Nombre del producto</h2>
+                <p id="productDescription">Descripción del producto</p>
+                <p id="productCategory">Categoría del producto</p>
+                <p id="productPrice" >Precio del producto</p>
+                <div class="product-detail-status">
+                    <span id="productStatus" class="product-status-badge">Estado del producto</span>
+                </div>
+                <div class="product-detail-actions">
+                    <label for="productQuantity">Cantidad:</label>
+                    <div class="quantity-wrapper">
+                        <button id="decrementQuantity" type="button">-</button>
+                        <input id="productQuantity" type="number" min="1" value="1">
+                        <button id="incrementQuantity" type="button">+</button>
+                    </div>
+                </div>
+                <div class="product-detail-buttons">
+                    <button id="addToCart" class="product-detail-addCart" type="button">Agregar al carrito</button>
+                    <button id="backToStore" class="product-detail-backToStore" type="button">Volver</button>
+                </div>
+            </div>
+        </section>
+    <script type="module" src="./productDetail.ts"></script>
+</body>
+</html>

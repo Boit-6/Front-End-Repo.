@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Pedidos | Food Store</title>
+    <link rel="stylesheet" href="../../../../style.css">
+</head>
+<body class="orders-body">
+    <header class="app-header">
+        <h1 class="logo">🍕 Food Store</h1>
+        <nav class="app-nav">
+            <a href="../../../../pages/store/home/home.html">Inicio</a>
+            <a href="#">Mis Pedidos</a>
+            <a href="#">Administración</a>
+            <a href="../../../../pages/store/home/cart/cart.html">🛒 Carrito</a>
+            <a id="userName"></a>
+            <button id="logout">Cerrar Sesión</button>
+        </nav>
+    </header>
+    <main class="app-main orders-main">
+        <section class="orders-section">
+            <h2>Mis Pedidos</h2>
+            <div id="orders-container" class="orders-container">
+                <!-- Los pedidos se agregarán dinámicamente aquí -->
+            </div>
+        </section>
+    </main>
+    <script type="module" src="./myOrders.js"></script>
+</body>
+</html>

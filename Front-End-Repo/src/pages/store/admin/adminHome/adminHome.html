@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Administración | Food Store</title>
+<link rel="stylesheet" href="../../../../style.css">
+</head>
+<body>
+    <header class="app-header">
+        <h1 class="logo">🍕 Food Store</h1>
+        <nav class="app-nav">
+            <a href="">Tienda</a>
+            <a href="#">Panel Admin</a>
+            <a id="userName"></a>
+            <button id="logout">Cerrar Sesión</button>
+        </nav>
+    </header>
+
+    <main class="app-main">
+        <aside class="sidebar">
+            <h2>Administración</h2>
+            <p class="subtitle">Panel de control</p>
+            <ul>
+                <li class="active"><a href="/src/pages/store/admin/adminHome/adminHome.html">📊 Dashboard</a></li>
+                <li><a href="/src/pages/store/admin/categories/categories.html">📁 Categorías</a></li>
+                <li><a href="/src/pages/store/admin/products/products.html">🍔 Productos</a></li>
+                <li><a href="/src/pages/store/admin/orders/orders.html">📦 Pedidos</a></li>
+                <li><a href="/src/pages/store/admin/store/store.html">🏪 Ver Tienda</a></li>
+            </ul>
+        </aside>
+
+    <section class="dashboard">
+        <h2>Panel de Administración</h2>
+        <div class="cards">
+            <div class="card card__categories">
+                <h3>📁 Categorías</h3>
+                <p class="count">0</p>
+                <button id="manageCategories">Gestionar</button>
+            </div>
+            <div class="card card__products">
+                <h3>🍔 Productos</h3>
+                <p class="count">0</p>
+                <button id="manageProducts">Gestionar</button>
+            </div>
+            <div class="card card__orders">
+                <h3>📦 Pedidos</h3>
+                <p class="count">0</p>
+                <button id="manageOrders">Gestionar</button>
+            </div>
+            <div class="card card__available">
+                <h3>✅ Disponibles</h3>
+                <p class="count">0</p>
+            </div>
+        </div>
+
+        <div class="summary">
+            <h3>📊 Resumen Rápido</h3>
+            <p>Cargando estadísticas...</p>
+        </div>
+    </section>
+</main>
+
+<script type="module" src="./adminHome.ts"></script>
+</body>
+</html>

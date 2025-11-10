@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Carrito | Food Store</title>
+    <link rel="stylesheet" href="../../../../style.css" />
+</head>
+<body class="product-detail-body">
+    <header class="app-header">
+        <h1 class="logo">🍕 Food Store</h1>
+        <nav class="app-nav">
+            <a href="../../../../pages/store/home/home.html">Inicio</a>
+            <a href="../../../../pages/store/home/myOrders/myOrders.html">Mis Pedidos</a>
+            <a href="#">Administración</a>
+            <a href="#">🛒 Carrito</a>
+            <a id="userName"></a>
+            <button id="logout">Cerrar Sesión</button>
+        </nav>
+    </header>
+
+    <main class="app-main product-detail-main">
+        <section class="product-detail" style="max-width:1100px; margin: 2rem auto;">
+            <!-- Lista de productos del carrito -->
+            <div id="cartItemsContainer" style="min-width: 0; flex: 1;">
+                <h2>Mi Carrito</h2>
+                <div id="cartList"></div>
+            </div>
+
+            <!-- Resumen del pedido -->
+            <aside style="width: 320px; margin-left: 2rem;">
+                <div class="summary" id="orderSummary">
+                    <h3>Resumen del Pedido</h3>
+                    <div style="display:flex; justify-content:space-between; margin: 0.6rem 0;">
+                        <span>Subtotal:</span>
+                        <span id="summarySubtotal">$0.00</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin: 0.6rem 0;">
+                        <span>Envío:</span>
+                        <span id="summaryShipping">$500.00</span>
+                    </div>
+                    <hr style="margin: 0.6rem 0;" />
+                    <div style="display:flex; justify-content:space-between; margin: 0.6rem 0; font-weight:700;">
+                        <span>Total:</span>
+                        <span id="summaryTotal">$0.00</span>
+                    </div>
+
+                    <button id="proceedToCheckout" class="btn-save" style="width:100%; margin-top: 0.8rem;">Proceder al Pago</button>
+                    <button id="emptyCart" class="btn-delete" style="width:100%; margin-top:0.6rem;">Vaciar Carrito</button>
+                </div>
+            </aside>
+        </section>
+    </main>
+
+    <!-- Modal Confirmación Pedido -->
+    <div id="checkoutModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Completar Pedido</h3>
+                <button id="closeModal" class="close-btn">×</button>
+            </div>
+            <form id="checkoutForm" class="modal-form">
+                <label>Teléfono</label>
+                <input id="phone" placeholder="Ej: +54 9 261 123-4567" required/>
+
+                <label>Dirección de Entrega</label>
+                <textarea id="address" placeholder="Calle, número, piso, depto" required></textarea>
+
+                <label>Método de Pago</label>
+                <select id="payment" required>
+                    <option value="">Seleccione un método</option>
+                    <option value="CASH">Efectivo</option>
+                    <option value="CARD">Tarjeta</option>
+                    <option value="TRANSFER">Transferencia</option>
+                </select>
+
+                <label>Delivery</label>
+                <select id="delivery" required>
+                    <option value="">Seleccione</option>
+                    <option value="DELIVERY">Delivery</option>
+                    <option value="TAKEAWAY">Retiro en local</option>
+                </select>
+
+                <label>Notas adicionales (opcional)</label>
+                <textarea id="notes" placeholder="Instrucciones especiales, timbre, etc." required></textarea>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 0.5rem;">
+                    <strong>Total a pagar:</strong>
+                    <strong id="modalTotal">$0.00</strong>
+                </div>
+
+                <button type="submit" class="btn-save" style="margin-top: 0.8rem;">Confirmar Pedido</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="./cart.ts"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio | Food Store</title>
+    <link rel="stylesheet" href="../../../style.css">
+</head>
+<body>
+    <header class="app-header">
+        <h1 class="logo">🍕 Food Store</h1>
+        <nav class="app-nav">
+            <a href="#">Inicio</a>
+            <a href="../../../pages/store/home/myOrders/myOrders.html">Mis Pedidos</a>
+            <a href="#">Administración</a>
+            <a href="../../../pages/store/home/cart/cart.html">🛒 Carrito</a>
+            <a id="userName"></a>
+            <button id="logout">Cerrar Sesión</button>
+        </nav>
+    </header>
+
+    <main class="app-main">
+        <aside class="sidebar">
+            <h2>Categorías</h2>
+            <p class="subtitle">Filtra por categoría</p>
+            <ul class="categories-list">
+                <li class="active"><a href="#" id="all-products">🍔 Todos los productos</a></li>
+            </ul>
+        </aside>
+
+        <section class="products-section">
+            <div class="search-bar">
+                <input type="text" id="searchBar" placeholder="🔍 Buscar productos..." />
+                <select>
+                    <option>Ordenar por</option>
+                </select>
+                <select>
+                    <option>Todos</option>
+                </select>
+            </div>
+
+            <h2>Todos los Productos</h2>
+
+            <div class="product-grid">
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="./home.ts"></script>
+</body>
+</html>

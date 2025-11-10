@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Pedidos | Food Store</title>
+    <link rel="stylesheet" href="../../../../style.css">
+</head>
+<body>
+    <header class="app-header">
+        <h1 class="logo">🍕 Food Store</h1>
+        <nav class="app-nav">
+            <a href="">Tienda</a>
+            <a href="/src/pages/store/admin/adminHome/adminHome.html">Panel Admin</a>
+            <a id="userName"></a>
+            <button id="logout">Cerrar Sesión</button>
+        </nav>
+    </header>
+
+    <main class="app-main">
+        <aside class="sidebar">
+            <h2>Administración</h2>
+            <p class="subtitle">Panel de control</p>
+            <ul>
+                <li><a href="/src/pages/store/admin/adminHome/adminHome.html">📊 Dashboard</a></li>
+                <li><a href="/src/pages/store/admin/categories/categories.html">📁 Categorías</a></li>
+                <li><a href="/src/pages/store/admin/products/products.html">🍔 Productos</a></li>
+                <li class="active"><a href="/src/pages/store/admin/orders/orders.html">📦 Pedidos</a></li>
+                <li><a href="/src/pages/store/admin/store/store.html">🏪 Ver Tienda</a></li>
+            </ul>
+        </aside>
+
+        <section class="categories-section">
+            <div class="section-header">
+                <h2>Gestión de Pedidos</h2>
+                </div>
+
+            <div class="table-container">
+                <table class="category-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Total</th>
+                            <th>Tipo de entrega</th>
+                            <th>Método de Pago</th>
+                            <th>Estado</th>
+                            <th>Detalles</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </section>
+
+        <div id="modalEditOrder" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Editar Estado del Pedido</h3>
+                    <button id="closeModalOrderEdit" class="close-btn">x</button>
+                </div>
+
+                <form id="orderFormEdit" class="modal-form">
+
+                    <label>Estado</label>
+                    <select id="editOrderState" required>
+                        </select>
+
+                    <button type="submit" id="saveEditOrderBtn" class="btn-save">Guardar</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="modalViewDetails" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Detalle del Pedido #<span id="orderDetailId"></span></h3>
+                    <button id="closeModalViewDetails" class="close-btn">x</button>
+                </div>
+                <div class="modal-body">
+                    <table class="category-table">
+                        <thead>
+                            <tr>
+                                <th>Producto ID</th>
+                                <th>Cantidad</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderDetailsTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script type="module" src="./orders.ts"></script>
+</body>
+</html>

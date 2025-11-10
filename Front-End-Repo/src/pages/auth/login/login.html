@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../../../src/style.css">
+    <title>Login | SuperFood</title>
+</head>
+<body class="body__auth">
+    <main class="main__auth">
+    <h1 class="login__title">SuperFood</h1>
+    <h2 >Iniciar Sesión</h2>
+
+    <form class="login__form" id="form">
+        <label class="login__label">Email</label>
+        <input class="form__input" type="email" id="email" name="email" placeholder="ejemplo@correo.com" required>
+        <label class="login__label" >Contraseña</label>
+        <input class="form__input"type="password" id="password" name="password" placeholder="Ingrese su contraseña" required>
+        <button class="submit">Ingresar</button>
+    </form>
+
+    <p>¿No tienes cuenta? <a href="../register/register.html">Registrarse</a></p>
+    </main>
+    <script type="module" src="./login.ts"></script>
+</body>
+</html>
