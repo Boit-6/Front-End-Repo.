@@ -385,7 +385,7 @@ body {
 }
 
 /* =========================
-   MODAL
+    MODAL
 ========================= */
 .modal-overlay {
     position: fixed;
@@ -476,7 +476,7 @@ body {
 
 
 /* =========================
-   HOME / TIENDA DE PRODUCTOS
+    HOME / TIENDA DE PRODUCTOS
 ========================= */
 .products-section {
     flex: 1;
@@ -584,7 +584,7 @@ body {
 
 
 /* =========================
-   PRODUCT DETAIL PAGE
+    PRODUCT DETAIL PAGE
 ========================= */
 body.product-detail-body {
     background: #f2f4f8;
@@ -867,5 +867,42 @@ body.product-detail-body {
     background: #00b894; /* Verde */
 }
 .status.cancelado {
-    background: #d63031; /* Rojo */
+    background: #d63031; 
+}
+
+/* =========================
+    TOASTS
+   ========================= */
+.toast-container {
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 9999;
+}
+.toast {
+    min-width: 220px;
+    background: #fff;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.12);
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    font-size: 0.95rem;
+    border-left: 6px solid #4caf50;
+    color: #182026;
+}
+.toast.info { border-left-color: #2196f3; }
+.toast.success { border-left-color: #4caf50; }
+.toast.warning { border-left-color: #ffb300; }
+.toast.error { border-left-color: #f44336; }
+.toast button.close-toast {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #666;
 }

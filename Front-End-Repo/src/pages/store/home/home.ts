@@ -1,39 +1,43 @@
-//----- IMPORTS -----
 import type { IProduct } from "../../../types/IProducts";
 import type { ICategory } from "../../../types/ICategories";
 import { logoutUser, checkAuthUser } from "../../../utils/auth";
 import { LOGIN_ROUTE, PRODUCTS_DETAIL_ROUTE, navigate } from "../../../utils/navigate";
-import { showUserName } from "../../../utils/service";
+import { showUserName, adjustHeaderLinks } from "../../../utils/service";
+import { apiFetch } from "../../../utils/api";
 
+/*
+  Página principal (home)
+  - Mostrar grid de productos con filtros y búsqueda
+  - Navegación a detalle de producto
+*/
 
-//----- MOSTRAR NOMBRE DEL USUARIO -----
 showUserName();
-
-//----- VERIFICAR USUARIO -----
+adjustHeaderLinks();
 checkAuthUser("USER", LOGIN_ROUTE);
 
+const API_BASE = "http://localhost:8080";
 
-//----- FUNCIÓN GLOBAL: ACTIVAR UNA CATEGORÍA (CLASE EN <li>) -----
+// Estado local
+let products: IProduct[] = [];
+let filteredProducts: IProduct[] = [];
+
+// Logout
+const logout = document.getElementById("logout") as HTMLButtonElement;
+logout.addEventListener("click", () => logoutUser());
+
+// Marcar categoría activa en el listado
 const setActive = (linkElement: HTMLElement) => {
-    // Quitar la clase active de todos los <li>
-    document.querySelectorAll(".categories-list li").forEach((li) => {
-        li.classList.remove("active");
-    });
-
-    // Buscar el <li> asociado al <a>
+    document.querySelectorAll(".categories-list li").forEach(li => li.classList.remove("active"));
     const parentLi = linkElement.closest("li");
-    if (parentLi) {
-        parentLi.classList.add("active");
-    }
+    if (parentLi) parentLi.classList.add("active");
 };
 
-
-//----- FUNCIÓN GLOBAL: RENDERIZAR PRODUCTOS -----
+/* Renderizar grid de productos */
 const renderProducts = (items: IProduct[]) => {
     const productGrid = document.querySelector(".product-grid") as HTMLDivElement;
     productGrid.innerHTML = "";
 
-    items.forEach((product) => {
+    items.forEach(product => {
         const productCard = document.createElement("div");
         productCard.classList.add("product-card");
 
@@ -59,112 +63,116 @@ const renderProducts = (items: IProduct[]) => {
 
         productGrid.appendChild(productCard);
     });
-    
 };
 
+/* Aplicar filtros: búsqueda, disponibilidad y orden */
+function applyAllFilters() {
+    const searchQuery = (document.getElementById("searchBar") as HTMLInputElement)
+        .value.toLowerCase();
+    const sortOrder = (document.querySelector("select:nth-of-type(1)") as HTMLSelectElement)
+        .value;
+    const availabilityFilter = (document.querySelector("select:nth-of-type(2)") as HTMLSelectElement)
+        .value;
 
-//----- LOGOUT -----
-const logout = document.getElementById("logout") as HTMLButtonElement;
-logout.addEventListener("click", () => logoutUser());
+    let filtered = [...products];
 
+    // Filtrar por texto de búsqueda
+    if (searchQuery) {
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery));
+    }
+    // Filtrar por disponibilidad
+    if (availabilityFilter === "activos") {
+        filtered = filtered.filter(p => p.availableProduct);
+    } else if (availabilityFilter === "inactivos") {
+        filtered = filtered.filter(p => !p.availableProduct);
+    }
+    // Ordenar por precio
+    if (sortOrder === "menor-mayor") {
+        filtered.sort((a, b) => a.price - b.price);
+    } else if (sortOrder === "mayor-menor") {
+        filtered.sort((a, b) => b.price - a.price);
+    }
 
-//----- VARIABLE GLOBAL PARA GUARDAR PRODUCTOS -----
-let products: IProduct[] = [];
-
-
-//==============================
-//     OBTENER PRODUCTOS
-//==============================
-try {
-    const response = await fetch("http://localhost:8080/product/admin", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" }
-    });
-
-    if (!response.ok) throw new Error("Error al obtener los productos");
-
-    products = await response.json();
-
-    // Render inicial
-    renderProducts(products);
-
-    //----- BUSCADOR -----
-    const searchBar = document.getElementById("searchBar") as HTMLInputElement;
-
-    searchBar.addEventListener("input", () => {
-        const query = searchBar.value.toLowerCase();
-
-        const filtered = products.filter((product) =>
-            product.name.toLowerCase().includes(query)
-        );
-
-        renderProducts(filtered);
-    });
-
-} catch (error) {
-    console.error("Error al conectar con el servidor:", error);
+    filteredProducts = filtered;
+    renderProducts(filteredProducts);
 }
 
+/* Cargar productos desde el backend */
+async function loadProducts(endpoint: string = `${API_BASE}/product/user`) {
+    try {
+        products = await apiFetch<IProduct[]>(endpoint, { method: "GET" });
+        filteredProducts = products;
+        applyAllFilters();
+    } catch (error) {
+        console.error("Error al cargar productos:", error);
+    }
+}
 
+// Setup del buscador
+const searchBar = document.getElementById("searchBar") as HTMLInputElement;
+searchBar.addEventListener("input", applyAllFilters);
 
-//==============================
-//     OBTENER CATEGORÍAS
-//==============================
-try {
-    const response = await fetch("http://localhost:8080/category", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" }
-    });
+// Filtros y orden
+const sortSelect = document.querySelectorAll("select")[0] as HTMLSelectElement;
+const filterSelect = document.querySelectorAll("select")[1] as HTMLSelectElement;
 
-    if (!response.ok) throw new Error("Error al obtener las categorías");
+sortSelect.addEventListener("change", applyAllFilters);
+filterSelect.addEventListener("change", () => {
+    const selectedFilter = filterSelect.value;
+    if (selectedFilter === "activos") {
+        loadProducts(`${API_BASE}/product/user`);
+    } else if (selectedFilter === "inactivos") {
+        loadProducts(`${API_BASE}/product/admin`);
+    } else {
+        loadProducts(`${API_BASE}/product/admin`);
+    }
+});
 
-    const categories: ICategory[] = await response.json();
-    const categoriesList = document.querySelector(".categories-list") as HTMLUListElement;
+/* Cargar y mostrar categorías (lista lateral) */
+async function setupCategories() {
+    try {
+        const categories = await apiFetch<ICategory[]>(`${API_BASE}/category`, { method: "GET" });
+        const categoriesList = document.querySelector(".categories-list") as HTMLUListElement;
 
+            // Filtrar productos por categoría
+        const filterByCategory = (categoryId: number) => {
+            if (categoryId === 0) {
+                renderProducts(products);
+                return;
+            }
+            const filtered = products.filter(p => p.category.id === categoryId);
+            renderProducts(filtered);
+        };
 
-    //----- FUNCIÓN FILTRAR POR CATEGORÍA -----
-    const filterByCategory = (categoryId: number) => {
-        if (categoryId === 0) {
-            renderProducts(products);
-            return;
-        }
+        // Agregar categorías al DOM
+        categories.forEach(category => {
+            const li = document.createElement("li");
+            const link = document.createElement("a");
+            link.href = "#";
+            link.textContent = category.name;
 
-        const filtered = products.filter(
-            (product) => product.category.id === categoryId
-        );
+            link.addEventListener("click", e => {
+                e.preventDefault();
+                setActive(link);
+                filterByCategory(category.id);
+            });
 
-        renderProducts(filtered);
-    };
-
-
-    //----- AGREGAR LISTA DE CATEGORÍAS -----
-    categories.forEach((category) => {
-        const li = document.createElement("li");
-        const link = document.createElement("a");
-
-        link.href = "#";
-        link.textContent = category.name;
-
-        link.addEventListener("click", (e) => {
-            e.preventDefault();
-            setActive(link);
-            filterByCategory(category.id);
+            li.appendChild(link);
+            categoriesList.appendChild(li);
         });
 
-        li.appendChild(link);
-        categoriesList.appendChild(li);
-    });
-
-
-    //----- BOTÓN "TODOS LOS PRODUCTOS" -----
-    const allProducts = document.getElementById("all-products") as HTMLAnchorElement;
-
-    allProducts.addEventListener("click", (e) => {
-        e.preventDefault();
-        setActive(allProducts);  // ahora activa el <li> correcto
-        filterByCategory(0);
-    });
-
-} catch (error) {
-    console.error("Error al conectar con el servidor:", error);
+        // Botón "Todos los productos"
+        const allProducts = document.getElementById("all-products") as HTMLAnchorElement;
+        allProducts.addEventListener("click", e => {
+            e.preventDefault();
+            setActive(allProducts);
+            filterByCategory(0);
+        });
+    } catch (error) {
+        console.error("Error al cargar categorías:", error);
+    }
 }
+
+//----- INICIAR -----
+loadProducts();
+setupCategories();

@@ -1,68 +1,63 @@
+/*
+  Página: Carrito
+  - Carga y persistencia del carrito en localStorage
+  - Render del carrito, resumen y checkout
+*/
 
-// IMPORTS
-import type { IOrder, IOrderDetail } from "../../../../types/IOrders";
+import type { IOrderDetail } from "../../../../types/IOrders";
 import type { IProduct } from "../../../../types/IProducts";
 import type { IUser } from "../../../../types/IUser";
 import { logoutUser, checkAuthUser } from "../../../../utils/auth";
-import { LOGIN_ROUTE, USER_ROUTE, navigate } from "../../../../utils/navigate";
-import { showUserName } from "../../../../utils/service";
+import { LOGIN_ROUTE, navigate } from "../../../../utils/navigate";
+import { showUserName, adjustHeaderLinks } from "../../../../utils/service";
+import { showToast } from "../../../../utils/toast";
+import { showConfirm } from "../../../../utils/confirm";
+import { apiFetch } from "../../../../utils/api";
+import { openModal, closeModal } from "../../../../utils/modal";
 
 showUserName();
+adjustHeaderLinks();
 checkAuthUser("USER", LOGIN_ROUTE);
 
-const CART_KEY = "cartDetails";         // misma key que product-detail.ts
-const PENDING_ORDER_KEY = "pendingOrder"; // donde guardamos el pedido armado al confirmar
+const CART_KEY = "cartDetails";
+const SHIPPING_COST = 500;
+const API_BASE = "http://localhost:8080";
 
+// Elementos del DOM
 const logout = document.getElementById("logout") as HTMLButtonElement;
-logout.addEventListener("click", () => logoutUser());
-
 const cartList = document.getElementById("cartList") as HTMLDivElement;
 const summarySubtotal = document.getElementById("summarySubtotal") as HTMLElement;
 const summaryShipping = document.getElementById("summaryShipping") as HTMLElement;
 const summaryTotal = document.getElementById("summaryTotal") as HTMLElement;
 const proceedToCheckout = document.getElementById("proceedToCheckout") as HTMLButtonElement;
 const emptyCartBtn = document.getElementById("emptyCart") as HTMLButtonElement;
-
 const checkoutModal = document.getElementById("checkoutModal") as HTMLDivElement;
-const closeModal = document.getElementById("closeModal") as HTMLButtonElement;
 const checkoutForm = document.getElementById("checkoutForm") as HTMLFormElement;
 const modalTotal = document.getElementById("modalTotal") as HTMLElement;
 
-// modal 
-const phoneInput = document.getElementById("phone") as HTMLInputElement;
-const addressInput = document.getElementById("address") as HTMLTextAreaElement;
-const paymentSelect = document.getElementById("payment") as HTMLSelectElement;
-const deliverySelect = document.getElementById("delivery") as HTMLSelectElement;
-const notesInput = document.getElementById("notes") as HTMLTextAreaElement;
+logout.addEventListener("click", () => logoutUser());
 
-const SHIPPING_COST = 500;
-
-// CARGAR / GUARDAR carrito
+// Cargar/guardar carrito en localStorage
 const loadCart = (): IOrderDetail[] => {
     const raw = localStorage.getItem(CART_KEY);
     if (!raw) return [];
     try {
         const parsed = JSON.parse(raw) as IOrderDetail[];
-        if (!Array.isArray(parsed)) return [];
-        return parsed;
+        return Array.isArray(parsed) ? parsed : [];
     } catch {
         return [];
     }
 };
+
+const saveCart = (cart: IOrderDetail[]) => localStorage.setItem(CART_KEY, JSON.stringify(cart));
+
 const storeUserRaw = localStorage.getItem("userData");
-const storeUser: Partial<IUser> | null = storeUserRaw ? JSON.parse(storeUserRaw) as Partial<IUser> : null;
+const storeUser: Partial<IUser> | null = storeUserRaw ? (JSON.parse(storeUserRaw) as Partial<IUser>) : null;
 
-const saveCart = (cart: IOrderDetail[]) => {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-};
+// Vaciar carrito
+const emptyCart = () => { localStorage.removeItem(CART_KEY); renderCart(); };
 
-// VACIAR carrito
-const emptyCart = () => {
-    localStorage.removeItem(CART_KEY);
-    renderCart();
-};
-
-// RENDERIZAR carrito en pantalla
+/* Render del carrito: detalles de ítems y resumen */
 const renderCart = async () => {
     cartList.innerHTML = "";
     const cart = loadCart();
@@ -72,18 +67,13 @@ const renderCart = async () => {
         return;
     }
 
-    // Por cada detalle, traemos el producto para mostrar la info
     let subtotalTotal = 0;
     for (const detail of cart) {
         try {
-            const resp = await fetch(`http://localhost:8080/product/${detail.product.id}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" }
-            });
-            if (!resp.ok){
-                throw new Error("No se pudo obtener producto " + detail.product.id);
-                }
-            const product: IProduct = await resp.json();
+            const product = await apiFetch<IProduct>(
+                `${API_BASE}/product/${detail.product.id}`,
+                { method: "GET" }
+            );
 
             const itemEl = document.createElement("div");
             itemEl.className = "product-card";
@@ -114,18 +104,17 @@ const renderCart = async () => {
             `;
 
             cartList.appendChild(itemEl);
-
             subtotalTotal += detail.subtotal;
         } catch (error) {
-            console.error("Error al cargar producto del carrito", error);
+            console.error("Error al cargar producto:", error);
         }
     }
 
     updateSummary(subtotalTotal);
-
     attachCartListeners();
 };
 
+/* Actualizar valores del resumen (subtotal / envío / total) */
 const updateSummary = (subtotalValue: number) => {
     const subtotal = Number(subtotalValue.toFixed(2));
     const total = Number((subtotal + SHIPPING_COST).toFixed(2));
@@ -135,35 +124,106 @@ const updateSummary = (subtotalValue: number) => {
     modalTotal.textContent = `$${total.toLocaleString("es-AR")}`;
 };
 
+/* Cambiar cantidad: + / - */
+const changeQuantity = async (productId: number, delta: number) => {
+    const cart = loadCart();
+    const idx = cart.findIndex(d => Number(d.product.id) === productId);
+    if (idx === -1) return;
+
+    try {
+        const product = await apiFetch<IProduct>(
+            `${API_BASE}/product/${productId}`,
+            { method: "GET" }
+        );
+
+        const newAmount = Math.max(1, cart[idx].amount + delta);
+        if (newAmount > product.stock) {
+            showToast("No hay suficiente stock", "warning");
+            return;
+        }
+
+        cart[idx].amount = newAmount;
+        cart[idx].subtotal = Number((product.price * newAmount).toFixed(2));
+        saveCart(cart);
+        await renderCart();
+    } catch (error) {
+        console.error(error);
+        showToast("Error al actualizar cantidad", "error");
+    }
+};
+
+/* Actualizar cantidad exactamente a un valor */
+const updateQuantityTo = async (productId: number, newAmount: number) => {
+    const cart = loadCart();
+    const idx = cart.findIndex(d => Number(d.product.id) === productId);
+    if (idx === -1) return;
+
+    try {
+        const product = await apiFetch<IProduct>(
+            `${API_BASE}/product/${productId}`,
+            { method: "GET" }
+        );
+
+        let finalAmount = newAmount;
+        if (finalAmount > product.stock) {
+            showToast("No hay suficiente stock", "warning");
+            finalAmount = product.stock;
+        }
+
+        cart[idx].amount = finalAmount;
+        cart[idx].subtotal = Number((product.price * finalAmount).toFixed(2));
+        saveCart(cart);
+        await renderCart();
+    } catch (error) {
+        console.error(error);
+        showToast("Error al actualizar cantidad", "error");
+    }
+};
+
+/* Eliminar ítem del carrito */
+const removeItem = (productId: number) => {
+    let cart = loadCart();
+    cart = cart.filter(detail => Number(detail.product.id) !== productId);
+    saveCart(cart);
+    renderCart();
+};
+
+/* Adjuntar listeners para los controles del carrito (qty, delete) */
 const attachCartListeners = () => {
-    const decrementButtons = Array.from(document.querySelectorAll(".btn-decrement")) as HTMLButtonElement[];
-    const incrementButtons = Array.from(document.querySelectorAll(".btn-increment")) as HTMLButtonElement[];
-    const deleteButtons = Array.from(document.querySelectorAll(".btn-delete-item")) as HTMLButtonElement[];
+    const decrementButtons = Array.from(
+        document.querySelectorAll(".btn-decrement")
+    ) as HTMLButtonElement[];
+    const incrementButtons = Array.from(
+        document.querySelectorAll(".btn-increment")
+    ) as HTMLButtonElement[];
+    const deleteButtons = Array.from(
+        document.querySelectorAll(".btn-delete-item")
+    ) as HTMLButtonElement[];
     const qtyInputs = Array.from(document.querySelectorAll(".qty-input")) as HTMLInputElement[];
 
     decrementButtons.forEach(btn => {
-        btn.addEventListener("click", (e) => {
+        btn.addEventListener("click", e => {
             const id = Number((e.currentTarget as HTMLElement).getAttribute("data-id"));
             changeQuantity(id, -1);
         });
     });
 
     incrementButtons.forEach(btn => {
-        btn.addEventListener("click", (e) => {
+        btn.addEventListener("click", e => {
             const id = Number((e.currentTarget as HTMLElement).getAttribute("data-id"));
             changeQuantity(id, +1);
         });
     });
 
     deleteButtons.forEach(btn => {
-        btn.addEventListener("click", (e) => {
+        btn.addEventListener("click", e => {
             const id = Number((e.currentTarget as HTMLElement).getAttribute("data-id"));
             removeItem(id);
         });
     });
 
     qtyInputs.forEach(input => {
-        input.addEventListener("change", (e) => {
+        input.addEventListener("change", e => {
             const target = e.currentTarget as HTMLInputElement;
             const id = Number(target.getAttribute("data-id"));
             let newVal = Number(target.value);
@@ -173,183 +233,87 @@ const attachCartListeners = () => {
     });
 };
 
-const changeQuantity = async (productId: number, delta: number) => {
-    const cart = loadCart();
-    const idx = cart.findIndex(d => Number(d.product.id) === productId);
-    if (idx === -1) return;
-
-    try {
-        const resp = await fetch(`http://localhost:8080/product/${productId}`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" }
-        });
-        if (!resp.ok) throw new Error("No se pudo obtener producto para cambiar cantidad");
-        const product: IProduct = await resp.json();
-
-        const newAmount = Math.max(1, cart[idx].amount + delta);
-        if (newAmount > product.stock) {
-            alert("No hay suficiente stock para esa cantidad");
-            return;
-        }
-        cart[idx].amount = newAmount;
-        cart[idx].subtotal = Number((product.price * newAmount).toFixed(2));
-        saveCart(cart);
-        await renderCart();
-    } catch (error) {
-        console.error(error);
-        alert("Error al actualizar cantidad");
-    }
-};
-
-const updateQuantityTo = async (productId: number, newAmount: number) => {
-    const cart = loadCart();
-    const idx = cart.findIndex(d => Number(d.product.id) === productId);
-    if (idx === -1) return;
-
-    try {
-        const resp = await fetch(`http://localhost:8080/product/${productId}`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" }
-        });
-        if (!resp.ok) throw new Error("No se pudo obtener producto para actualizar cantidad");
-        const product: IProduct = await resp.json();
-
-        if (newAmount > product.stock) {
-            alert("No hay suficiente stock para esa cantidad");
-            newAmount = product.stock;
-        }
-
-        cart[idx].amount = newAmount;
-        cart[idx].subtotal = Number((product.price * newAmount).toFixed(2));
-        saveCart(cart);
-        await renderCart();
-    } catch (error) {
-        console.error(error);
-        alert("Error al actualizar cantidad");
-    }
-};
-
-// Eliminar ítem
-const removeItem = (productId: number) => {
-    let cart = loadCart();
-    cart = cart.filter(detail => Number(detail.product.id) !== productId);
-    saveCart(cart);
-    renderCart();
-};
-
-// Vaciar carrito
-emptyCartBtn.addEventListener("click", () => {
-    if (confirm("¿Estás seguro de vaciar el carrito?")) {
+// Vaciar carrito (botón)
+emptyCartBtn.addEventListener("click", async () => {
+    const ok = await showConfirm("¿Estás seguro de vaciar el carrito?");
+    if (ok) {
         emptyCart();
+        showToast("Carrito vaciado", "info");
     }
 });
 
-// PROCEDER AL CHECKOUT (abre modal)
+// Proceder al checkout
 proceedToCheckout.addEventListener("click", () => {
     const cart = loadCart();
     if (cart.length === 0) {
-        alert("El carrito está vacío");
+        showToast("El carrito está vacío", "warning");
         return;
     }
-    checkoutModal.classList.remove("hidden");
+    openModal(checkoutModal);
 });
 
-// cerrar modal
-closeModal.addEventListener("click", () => {
-    checkoutModal.classList.add("hidden");
-});
+// Cierre del modal de checkout
+const closeModalBtn = document.getElementById("closeModal") as HTMLButtonElement;
+closeModalBtn.addEventListener("click", () => closeModal(checkoutModal));
+checkoutModal.addEventListener("click", e => { if (e.target === checkoutModal) closeModal(checkoutModal); });
 
-// SUBMIT del checkout (armar IOrder y guardarlo localmente para enviarlo luego)
-checkoutForm.addEventListener("submit", (e) => {
+// Envío del formulario de checkout
+checkoutForm.addEventListener("submit", async e => {
     e.preventDefault();
 
     const cart = loadCart();
     if (cart.length === 0) {
-        alert("Carrito vacío");
+        showToast("Carrito vacío", "warning");
         return;
     }
 
-    const phone = phoneInput.value.trim();
-    const address = addressInput.value.trim();
-    const payment = paymentSelect.value.trim().toUpperCase(); // pendiente: CASH/CARD/TRANSFER (EN MAYÚSCULAS)
-    const delivery = deliverySelect.value.trim().toUpperCase(); // DELIVERY/TAKEAWAY
-    const notes = notesInput.value.trim();
-
-
-    // calcular total
-    const subtotal = cart.reduce((acc, d) => acc + d.subtotal, 0);
-    const total = Number((subtotal + SHIPPING_COST).toFixed(2));
-
-    // Validar que el usuario esté autenticado
     if (!storeUser || !storeUser.id) {
-        alert("Error: Usuario no autenticado. Por favor, inicia sesión nuevamente.");
+        showToast("Error: Usuario no autenticado", "error");
         navigate(LOGIN_ROUTE);
         return;
     }
 
-    // Capturar el ID del usuario después de la validación
-    const userId = storeUser.id;
+    // Obtener datos del formulario
+    const paymentSelect = document.getElementById("payment") as HTMLSelectElement;
+    const deliverySelect = document.getElementById("delivery") as HTMLSelectElement;
 
-    // Transformar el carrito al formato que espera el backend
-    // El backend espera: { amount, subtotal, productId }
-    // El frontend tiene: { amount, subtotal, product: IProduct }
+    const payment = paymentSelect.value.trim().toUpperCase();
+    const delivery = deliverySelect.value.trim().toUpperCase();
+
+    // Calcular totales
+    const subtotal = cart.reduce((acc, d) => acc + d.subtotal, 0);
+    const total = Number((subtotal + SHIPPING_COST).toFixed(2));
+
+    // Preparar detalles para el backend
     const orderDetails = cart.map(detail => ({
         amount: detail.amount,
         subtotal: detail.subtotal,
         productId: Number(detail.product.id)
     }));
 
-    // Preparar IOrder tal como lo pide el backend
-    async function createOrder() {
-        try {
-            const response = await fetch(`http://localhost:8080/orders/create/${userId}`, {
+    // Enviar orden al backend
+    try {
+        await apiFetch(
+            `${API_BASE}/orders/create/${storeUser.id}`,
+            {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
+                body: {
                     total,
-                    payment: payment as any, // se espera "CASH"|"CARD"|"TRANSFER"
-                    delivery: delivery as any, // se espera "DELIVERY"|"TAKEAWAY"
-                    details: orderDetails,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error("Error del servidor:", errorText);
-                throw new Error(errorText || "No se pudo crear la orden");
-            }
-
-            const createdOrder = await response.json();
-            alert("¡Orden creada exitosamente!");
-            // Limpiar el carrito después de crear la orden
-            emptyCart();
-            checkoutModal.classList.add("hidden");
-            // Opcional: redirigir a la página de pedidos
-            // navigate("/store/home/myOrders");
-        } catch (error) {
-            console.error("Error al crear la orden:", error);
-            alert(`Error al crear la orden: ${error instanceof Error ? error.message : "Error desconocido"}`);
-        }
+                    payment: payment as any,
+                    delivery: delivery as any,
+                    details: orderDetails
+                }
+            },
+            { successMessage: "¡Orden creada exitosamente!" }
+        );
+        emptyCart();
+        closeModal(checkoutModal);
+    } catch (error) {
+        console.error("Error al crear la orden:", error);
     }
-
-    // Llamar la función
-    createOrder();
-
-/*
-    // Guardamos el pedido listo para ser enviado posteriormente
-    localStorage.setItem(PENDING_ORDER_KEY, JSON.stringify({
-        order,
-        phone,
-        address,
-        notes,
-        createdAt: new Date().toISOString()
-    }));*/
-
-    //alert("Pedido preparado y guardado localmente. Cuando quieras, lo envías al servidor.");
-    // El modal se cierra dentro de createOrder() después de crear la orden exitosamente
 });
 
-// Al cargar la página renderizamos
+//----- INICIAR -----
 document.addEventListener("DOMContentLoaded", () => {
     renderCart();
 });

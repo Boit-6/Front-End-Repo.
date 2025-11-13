@@ -1,4 +1,6 @@
 import type { IProduct } from "./IProducts";
+import type { IUser } from "./IUser";
+
 export interface IOrder {
     id: number;
     state: state;
@@ -7,6 +9,8 @@ export interface IOrder {
     delivery: delivery;
     details: IOrderDetail[];
     date?: string;
+    createdAt?: string;
+    user?: Partial<IUser>;
 }
 export interface IOrderDetail {
     amount: number;

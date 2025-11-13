@@ -1,220 +1,186 @@
 import { logoutUser, checkAuthUser } from "../../../../utils/auth";
 import { LOGIN_ROUTE } from "../../../../utils/navigate";
 import type { ICategory } from "../../../../types/ICategories";
-import { showUserName } from "../../../../utils/service";
+import { showUserName, adjustHeaderLinks } from "../../../../utils/service";
+import { apiFetch, apiDeleteWithConfirm } from "../../../../utils/api";
+import { openModal, closeModal, setupModalClosers } from "../../../../utils/modal";
+import { getFormValues, fillForm } from "../../../../utils/form";
+
+/*
+  Gestión de categorías (panel admin)
+  - Carga y render de la tabla de categorías
+  - Creación, edición y eliminación mediante modales
+  - Se actualiza sólo la sección afectada tras cada operación
+*/
 
 showUserName();
+adjustHeaderLinks();
 
-
-//----- CHECK AUTH USER -----
+// Control de acceso: sólo admin puede ver esta página
 checkAuthUser("ADMIN", LOGIN_ROUTE);
 
-//----- LOGOUT BUTTON -----
+// Logout
 const logout = document.getElementById("logout") as HTMLButtonElement;
-logout.addEventListener("click", () => {
-    logoutUser();
-});
+logout.addEventListener("click", () => logoutUser());
 
-//----- SET USER NAME IN HEADER -----
-try {
-    const raw = localStorage.getItem("userData");
-    if (raw) {
-        const user = JSON.parse(raw) as { name?: string; last_Name?: string; email?: string };
-        const displayName = [user.name, user.last_Name].filter(Boolean).join(" ") || (user.email || "");
-        const userNameEl = document.getElementById("userName");
-        if (userNameEl) userNameEl.textContent = displayName;
+// Configuración básica de modales (selectores de cierre)
+setupModalClosers({ modalSelector: '#modalEditCategory', closeSelector: '#closeModalEdit' });
+setupModalClosers({ modalSelector: '#modalCreateCategory', closeSelector: '#closeModal' });
+
+/* ---------- CARGAR Y RENDERIZAR CATEGORÍAS ---------- */
+async function loadCategories() {
+    try {
+        const categories = await apiFetch<ICategory[]>(
+            "http://localhost:8080/category",
+            { method: "GET" },
+            { showError: true }
+        );
+
+        const tableContainer = document.querySelector(".table-container") as HTMLDivElement;
+        tableContainer.innerHTML = `
+            <table class="category-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        `;
+
+        const tbody = tableContainer.querySelector("tbody") as HTMLTableSectionElement;
+        categories.forEach((category) => tbody.appendChild(renderCategoryRow(category)));
+    } catch (err) {
+        console.error("Error al cargar categorías:", err);
     }
-} catch {}
-
-try {
-    //----- GET CATEGORIES -----
-    const response = await fetch("http://localhost:8080/category", {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Error al obtener las categorías");
-    }
-
-    const categories: ICategory[] = await response.json();
-
-    //----- TABLE CONTAINER -----
-    const tableContainer = document.querySelector(".table-container") as HTMLDivElement;
-
-    tableContainer.innerHTML = `
-        <table class="category-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Imagen</th>
-                    <th>Nombre</th>
-                    <th>Descripción</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    `;
-
-    const tbody = tableContainer.querySelector("tbody") as HTMLTableSectionElement;
-
-    //----- RENDER CATEGORIES -----
-    categories.forEach((category) => {
-        const tr = document.createElement("tr");
-
-        //----- CATEGORY ID -----
-        const tdID = document.createElement("td");
-        tdID.innerText = category.id.toString();
-        tr.appendChild(tdID);
-
-        //----- CATEGORY IMAGE -----
-        const tdImage = document.createElement("td");
-        const img = document.createElement("img");
-        img.src = category.url;
-        img.classList.add("cat-img");
-        tdImage.appendChild(img);
-        tr.appendChild(tdImage);
-
-        //----- CATEGORY NAME -----
-        const tdName = document.createElement("td");
-        tdName.innerText = category.name;
-        tr.appendChild(tdName);
-
-        //----- CATEGORY DESCRIPTION -----
-        const tdDescription = document.createElement("td");
-        tdDescription.innerText = category.description;
-        tr.appendChild(tdDescription);
-
-        //----- CATEGORY ACTIONS -----
-        const tdActions = document.createElement("td");
-        const actionsDiv = document.createElement("div");
-        actionsDiv.classList.add("actions");
-
-        //----- EDIT CATEGORY -----
-        const btnEdit = document.createElement("button");
-        btnEdit.innerText = "Editar";
-        btnEdit.classList.add("btn-edit");
-        btnEdit.addEventListener("click", () => {
-            const modalEditOverlay = document.getElementById("modalEditCategory") as HTMLDivElement;
-            const modalEditCategoryNameInput = document.getElementById("editCategoryName") as HTMLInputElement;
-            const modalEditCategoryDescriptionInput = document.getElementById("editCategoryDescription") as HTMLTextAreaElement;
-            const modalEditCategoryImageInput = document.getElementById("editCategoryImage") as HTMLInputElement;
-            const modalFormEdit = document.getElementById("categoryFormEdit") as HTMLFormElement;
-            const closeModal = document.getElementById("closeModalEdit") as HTMLButtonElement;
-            const saveEditBtn = document.getElementById("saveEditBtn") as HTMLButtonElement;
-
-            //----- MOSTRAR EDIT MODAL -----
-            modalEditOverlay.classList.remove("hidden");
-            modalFormEdit.reset();
-
-            //----- CERRAR EDIT MODAL -----
-            closeModal.addEventListener("click", () => {
-                modalEditOverlay.classList.add("hidden");
-                modalFormEdit.reset();
-            });
-
-            //----- GUARDAMOS EDITED CATEGORY -----
-            saveEditBtn.addEventListener("click", async () => {
-                try {
-                    const response = await fetch(`http://localhost:8080/category/edit/${category.id}`, {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            id: category.id,
-                            name: modalEditCategoryNameInput.value,
-                            description: modalEditCategoryDescriptionInput.value,
-                            url: modalEditCategoryImageInput.value,
-                        }),
-                    });
-
-                    if (!response.ok) {
-                        return;
-                    }
-
-                    modalEditOverlay.classList.add("hidden");
-                    location.reload();
-                } catch (err) {
-                    console.error("Error al conectar con el servidor:", err);
-                }
-            });
-        });
-
-        //----- BORRAR CATEGORY -----
-        const btnDelete = document.createElement("button");
-        btnDelete.innerText = "Eliminar";
-        btnDelete.classList.add("btn-delete");
-        btnDelete.addEventListener("click", async () => {
-            await fetch(`http://localhost:8080/category/delete/${category.id}`, {
-                method: "DELETE",
-            });
-            location.reload();
-        });
-
-        actionsDiv.appendChild(btnEdit);
-        actionsDiv.appendChild(btnDelete);
-        tdActions.appendChild(actionsDiv);
-        tr.appendChild(tdActions);
-        tbody.appendChild(tr);
-    });
-} catch (err) {
-    throw new Error(err as string);
 }
 
-//----- CREAR CATEGORY MODAL ELEMENTS -----
-const modalOverlay = document.getElementById("modalCreateCategory") as HTMLDivElement;
+/* Crea una fila de la tabla para una categoría */
+function renderCategoryRow(category: ICategory): HTMLTableRowElement {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+        <td>${category.id}</td>
+        <td><img src="${category.url}" class="cat-img" alt="${category.name}"/></td>
+        <td>${category.name}</td>
+        <td>${category.description}</td>
+        <td>
+            <div class="actions">
+                <button class="btn-edit" data-id="${category.id}">Editar</button>
+                <button class="btn-delete" data-id="${category.id}">Eliminar</button>
+            </div>
+        </td>
+    `;
+
+    const btnEdit = tr.querySelector('.btn-edit') as HTMLButtonElement;
+    const btnDelete = tr.querySelector('.btn-delete') as HTMLButtonElement;
+
+    btnEdit.addEventListener('click', () => handleEditCategory(category));
+    btnDelete.addEventListener('click', () => handleDeleteCategory(category));
+
+    return tr;
+}
+
+/* ---------- EDICIÓN DE CATEGORÍA ---------- */
+async function handleEditCategory(category: ICategory) {
+    const modal = document.getElementById("modalEditCategory") as HTMLDivElement;
+    const form = document.getElementById("categoryFormEdit") as HTMLFormElement;
+
+    // Rellenar form con los datos actuales
+    fillForm(form, {
+        editCategoryName: category.name,
+        editCategoryDescription: category.description,
+        editCategoryImage: category.url
+    });
+
+    openModal(modal);
+
+    // Reemplazar el formulario para evitar listeners previos
+    const newForm = form.cloneNode(true) as HTMLFormElement;
+    form.parentNode?.replaceChild(newForm, form);
+
+    newForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        try {
+            const values = getFormValues(newForm);
+            await apiFetch(
+                `http://localhost:8080/category/edit/${category.id}`,
+                {
+                    method: 'PUT',
+                    body: {
+                        id: category.id,
+                        name: values.editCategoryName,
+                        description: values.editCategoryDescription,
+                        url: values.editCategoryImage
+                    }
+                },
+                { successMessage: 'Categoría actualizada' }
+            );
+            closeModal(modal);
+            // Actualizar solo la sección de categorías
+            await loadCategories();
+        } catch (err) {
+            console.error(err);
+        }
+    });
+}
+
+/* ---------- ELIMINAR CATEGORÍA ---------- */
+async function handleDeleteCategory(category: ICategory) {
+    try {
+        await apiDeleteWithConfirm(
+            `http://localhost:8080/category/delete/${category.id}`,
+            `¿Eliminar categoría "${category.name}"?`,
+            'Categoría eliminada'
+        );
+        await loadCategories();
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+/* ---------- CREAR CATEGORÍA (MODAL) ---------- */
 const btnAddModal = document.getElementById("btnAddCategory") as HTMLButtonElement;
-const btnCloseModal = document.getElementById("closeModal") as HTMLButtonElement;
+const btnCloseCreateModal = document.getElementById("closeModal") as HTMLButtonElement;
 const formModal = document.getElementById("categoryForm") as HTMLFormElement;
-const categoryNameInputModal = document.getElementById("categoryName") as HTMLInputElement;
-const categoryDescriptionInputModal = document.getElementById("categoryDescription") as HTMLTextAreaElement;
-const categoryImageInputModal = document.getElementById("categoryImage") as HTMLInputElement;
+const modalOverlay = document.getElementById("modalCreateCategory") as HTMLDivElement;
 
-//----- MOSTRAR CREATE CATEGORY MODAL -----
 btnAddModal.addEventListener("click", () => {
-    modalOverlay.classList.remove("hidden");
+    formModal.reset();
+    openModal(modalOverlay);
 });
 
-//----- CERRAR CREATE CATEGORY MODAL -----
-btnCloseModal.addEventListener("click", () => {
-    modalOverlay.classList.add("hidden");
-});
+btnCloseCreateModal.addEventListener("click", () => closeModal(modalOverlay, formModal));
 
-//----- ENVIAMOS CREATE CATEGORY FORM SUBMIT -----
 formModal.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const categoryName = categoryNameInputModal.value;
-    const categoryDescription = categoryDescriptionInputModal.value;
-    const categoryImage = categoryImageInputModal.value.trim();
-
-    const newCategory: ICategory = {
-        id: 999, 
-        name: categoryName,
-        description: categoryDescription,
-        url: categoryImage,
-    };
-
     try {
-        const response = await fetch("http://localhost:8080/category/create", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
+        const values = getFormValues(formModal);
+        await apiFetch(
+            "http://localhost:8080/category/create",
+            {
+                method: "POST",
+                body: {
+                    id: 999,
+                    name: values.categoryName,
+                    description: values.categoryDescription,
+                    url: values.categoryImage
+                }
             },
-            body: JSON.stringify(newCategory),
-        });
-
-        if (!response.ok) {
-            return;
-        }
-
-        formModal.reset();
-        modalOverlay.classList.add("hidden");
-        location.reload();
-
+            { successMessage: 'Categoría creada' }
+        );
+        closeModal(modalOverlay, formModal);
+        await loadCategories();
     } catch (err) {
-        alert("Error en el servidor");
+        console.error(err);
     }
 });
+
+// Cargar lista al iniciar la página
+loadCategories();

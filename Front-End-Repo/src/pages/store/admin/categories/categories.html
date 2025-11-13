@@ -26,7 +26,7 @@
                 <li class="active"><a href="#">📁 Categorías</a></li>
                 <li><a href="/src/pages/store/admin/products/products.html">🍔 Productos</a></li>
                 <li><a href="/src/pages/store/admin/orders/orders.html">📦 Pedidos</a></li>
-                <li><a href="/src/pages/store/admin/store/store.html">🏪 Ver Tienda</a></li>
+                <li><a href="../../home/home.html">🏪 Ver Tienda</a></li>
             </ul>
         </aside>
 
@@ -60,13 +60,13 @@
 
                 <form id="categoryForm" class="modal-form">
                     <label>Nombre</label>
-                    <input type="text" id="categoryName" placeholder="Nombre de la categoría" required />
+                    <input type="text" id="categoryName" name="categoryName" placeholder="Nombre de la categoría" required />
 
                     <label>Descripción</label>
-                    <textarea id="categoryDescription" placeholder="Descripción de la categoría" required></textarea>
+                    <textarea id="categoryDescription" name="categoryDescription" placeholder="Descripción de la categoría" required></textarea>
 
                     <label>URL de Imagen</label>
-                    <input type="url" id="categoryImage" placeholder="https://ejemplo.com/imagen.jpg" required />
+                    <input type="url" id="categoryImage" name="categoryImage" placeholder="https://ejemplo.com/imagen.jpg" required />
 
                     <button type="submit" class="btn-save">Guardar</button>
                 </form>
@@ -83,13 +83,13 @@
 
                 <form id="categoryFormEdit" class="modal-form">
                     <label>Nombre</label>
-                    <input type="text" id="editCategoryName" placeholder="Nombre de la categoría" required />
+                    <input type="text" id="editCategoryName" name="editCategoryName" placeholder="Nombre de la categoría" required />
 
                     <label>Descripción</label>
-                    <textarea id="editCategoryDescription" placeholder="Descripción de la categoría" required></textarea>
+                    <textarea id="editCategoryDescription" name="editCategoryDescription" placeholder="Descripción de la categoría" required></textarea>
 
                     <label>URL de Imagen</label>
-                    <input type="url" id="editCategoryImage" placeholder="https://ejemplo.com/imagen.jpg" required />
+                    <input type="url" id="editCategoryImage" name="editCategoryImage" placeholder="https://ejemplo.com/imagen.jpg" required />
 
                     <button type="submit" id="saveEditBtn" class="btn-save">Guardar</button>
                 </form>
