@@ -1,7 +1,3 @@
-/**
- * Table and Card rendering utilities
- */
-
 export interface TableColumn<T> {
     header: string;
     key?: keyof T;
@@ -9,9 +5,6 @@ export interface TableColumn<T> {
     className?: string;
 }
 
-/**
- * Create a table row from an object using column definitions
- */
 export function createTableRow<T>(item: T, columns: TableColumn<T>[]): HTMLTableRowElement {
     const tr = document.createElement('tr');
 
@@ -40,9 +33,7 @@ export function createTableRow<T>(item: T, columns: TableColumn<T>[]): HTMLTable
     return tr;
 }
 
-/**
- * Create a table from an array of items
- */
+
 export function createTable<T>(
     items: T[],
     columns: TableColumn<T>[],
@@ -76,9 +67,6 @@ export function createTable<T>(
     return table;
 }
 
-/**
- * Clear container and insert element
- */
 export function setContainerContent(
     containerId: string,
     element: HTMLElement
@@ -90,9 +78,6 @@ export function setContainerContent(
     container.appendChild(element);
 }
 
-/**
- * Batch append elements to container
- */
 export function appendToContainer(
     containerId: string,
     elements: HTMLElement | HTMLElement[]

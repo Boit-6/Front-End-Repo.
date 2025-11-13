@@ -1,9 +1,3 @@
-/*
-  Página: Detalle de producto
-  - Muestra la información del producto
-  - Permite seleccionar cantidad y agregar al carrito
-*/
-
 import type { IProduct } from "../../../../types/IProducts";
 import type { IOrderDetail } from "../../../../types/IOrders";
 import { logoutUser, checkAuthUser } from "../../../../utils/auth";

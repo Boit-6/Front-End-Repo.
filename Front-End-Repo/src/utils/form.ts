@@ -1,7 +1,3 @@
-/**
- * Form and input utilities
- */
-
 export interface FormFieldConfig {
     name: string;
     label: string;
@@ -11,9 +7,6 @@ export interface FormFieldConfig {
     options?: Array<{ value: string; label: string }>;
 }
 
-/**
- * Extract form values into an object
- */
 export function getFormValues(form: HTMLFormElement): Record<string, any> {
     const formData = new FormData(form);
     const values: Record<string, any> = {};
@@ -25,9 +18,6 @@ export function getFormValues(form: HTMLFormElement): Record<string, any> {
     return values;
 }
 
-/**
- * Pre-fill form fields
- */
 export function fillForm(
     form: HTMLFormElement,
     data: Record<string, any>
@@ -40,9 +30,6 @@ export function fillForm(
     });
 }
 
-/**
- * Reset form and clear specific fields
- */
 export function resetFormFields(form: HTMLFormElement, fieldNames?: string[]): void {
     if (!fieldNames) {
         form.reset();
@@ -55,9 +42,6 @@ export function resetFormFields(form: HTMLFormElement, fieldNames?: string[]): v
     });
 }
 
-/**
- * Validate required fields
- */
 export function validateRequired(
     form: HTMLFormElement,
     requiredFields: string[]

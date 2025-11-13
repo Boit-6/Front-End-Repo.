@@ -1,7 +1,3 @@
-/**
- * Utility to manage modal overlays and their lifecycle
- */
-
 export interface ModalConfig {
     modalSelector: string;
     closeSelector: string;
@@ -26,7 +22,6 @@ export function setupModalClosers(config: ModalConfig): void {
         closeModal(modal);
     });
 
-    // Close on overlay click (click outside modal)
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             closeModal(modal);

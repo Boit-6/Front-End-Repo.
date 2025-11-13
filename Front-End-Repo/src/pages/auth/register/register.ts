@@ -3,11 +3,6 @@ import { navigate, LOGIN_ROUTE } from "../../../utils/navigate";
 import { showToast } from "../../../utils/toast";
 import { apiFetch } from "../../../utils/api";
 
-/*
-    Pantalla de registro
-    - Envía datos al backend y redirige al login si todo OK
-*/
-
 const API_BASE = "http://localhost:8080";
 
 const registerForm = document.getElementById("registerForm") as HTMLFormElement;

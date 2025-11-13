@@ -5,12 +5,6 @@ import { LOGIN_ROUTE, PRODUCTS_DETAIL_ROUTE, navigate } from "../../../utils/nav
 import { showUserName, adjustHeaderLinks } from "../../../utils/service";
 import { apiFetch } from "../../../utils/api";
 
-/*
-  Página principal (home)
-  - Mostrar grid de productos con filtros y búsqueda
-  - Navegación a detalle de producto
-*/
-
 showUserName();
 adjustHeaderLinks();
 checkAuthUser("USER", LOGIN_ROUTE);

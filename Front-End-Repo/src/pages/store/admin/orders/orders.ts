@@ -6,13 +6,6 @@ import { openModal, closeModal } from "../../../../utils/modal";
 import { adjustHeaderLinks, showUserName } from "../../../../utils/service";
 import type { IOrder, state } from "../../../../types/IOrders";
 
-/*
-    Panel de administración — Gestión de pedidos
-    - Carga y render de los pedidos
-    - Ver detalle, editar estado y eliminar pedidos
-    - Protecciones: no permitir editar pedidos cancelados
-*/
-
 showUserName();
 checkAuthUser("ADMIN", LOGIN_ROUTE);
 adjustHeaderLinks();

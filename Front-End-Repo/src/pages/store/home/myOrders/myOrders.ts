@@ -5,12 +5,6 @@ import { apiFetch } from "../../../../utils/api";
 import type { IUser } from "../../../../types/IUser";
 import type { IOrder, IOrderDetail, state } from "../../../../types/IOrders";
 
-/*
-  Página: Mis pedidos
-  - Muestra los pedidos del usuario logueado
-  - Render simple de tarjetas con estado y total
-*/
-
 showUserName();
 adjustHeaderLinks();
 checkAuthUser("USER", LOGIN_ROUTE);

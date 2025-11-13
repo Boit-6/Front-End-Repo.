@@ -1,9 +1,3 @@
-/*
-  Página: Carrito
-  - Carga y persistencia del carrito en localStorage
-  - Render del carrito, resumen y checkout
-*/
-
 import type { IOrderDetail } from "../../../../types/IOrders";
 import type { IProduct } from "../../../../types/IProducts";
 import type { IUser } from "../../../../types/IUser";
@@ -23,7 +17,6 @@ const CART_KEY = "cartDetails";
 const SHIPPING_COST = 500;
 const API_BASE = "http://localhost:8080";
 
-// Elementos del DOM
 const logout = document.getElementById("logout") as HTMLButtonElement;
 const cartList = document.getElementById("cartList") as HTMLDivElement;
 const summarySubtotal = document.getElementById("summarySubtotal") as HTMLElement;

@@ -6,11 +6,6 @@ import { openModal, closeModal } from "../../../../utils/modal";
 import { adjustHeaderLinks, showUserName } from "../../../../utils/service";
 import type { IProduct } from "../../../../types/IProducts";
 
-/*
-    Panel admin — Gestión de productos
-    - Carga, listado y CRUD de productos
-    - Formularios en modales para crear/editar
-*/
 
 showUserName();
 checkAuthUser("ADMIN", LOGIN_ROUTE);
@@ -275,5 +270,4 @@ saveBtn.addEventListener("click", async (e) => {
     }
 });
 
-// Inicializar lista al cargar la página
 loadProducts();

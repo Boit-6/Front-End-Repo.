@@ -2,12 +2,6 @@ import { logoutUser, checkAuthUser } from "../../../../utils/auth";
 import { LOGIN_ROUTE, CATEGORIES_ROUTE, PRODUCTS_ROUTE, ORDERS_ROUTE, navigate } from "../../../../utils/navigate";
 import { showUserName, adjustHeaderLinks } from "../../../../utils/service";
 
-/*
-  Admin Dashboard (home)
-  - Enlaces rápidos a gestión de categorías, productos y pedidos
-  - Muestra contadores básicos (categorías, productos, pedidos, disponibles)
-*/
-
 checkAuthUser("ADMIN", LOGIN_ROUTE);
 adjustHeaderLinks();
 

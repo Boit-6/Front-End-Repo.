@@ -4,12 +4,6 @@ import { navigate, ADMIN_ROUTE, USER_ROUTE } from "../../../utils/navigate";
 import { showToast } from "../../../utils/toast";
 import { apiFetch } from "../../../utils/api";
 
-/*
-  Pantalla de login
-  - Envía credenciales al backend
-  - Guarda usuario en localStorage y redirige según rol
-*/
-
 const API_BASE = "http://localhost:8080";
 
 const loginForm = document.getElementById("form") as HTMLFormElement;

@@ -6,13 +6,6 @@ import { apiFetch, apiDeleteWithConfirm } from "../../../../utils/api";
 import { openModal, closeModal, setupModalClosers } from "../../../../utils/modal";
 import { getFormValues, fillForm } from "../../../../utils/form";
 
-/*
-  Gestión de categorías (panel admin)
-  - Carga y render de la tabla de categorías
-  - Creación, edición y eliminación mediante modales
-  - Se actualiza sólo la sección afectada tras cada operación
-*/
-
 showUserName();
 adjustHeaderLinks();
 
